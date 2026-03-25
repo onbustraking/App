@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>O MY BUS - बस ट्रैकर</title>
+    <title>Oh my bus - बस ट्रैकर</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KCYBVZLHWZ"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-KCYBVZLHWZ');
+    </script>
     
     <!-- PWA Configuration -->
     <link rel="manifest" href="manifest.json">
@@ -14,7 +23,7 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Hind:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Firebase SDK -->
@@ -103,12 +112,16 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: nowrap;
+            gap: 12px;
+            overflow-x: auto;
         }
 
         .hero-actions {
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .badge {
@@ -119,6 +132,8 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
+            width: auto;
         }
 
         .badge-dot {
@@ -154,6 +169,7 @@
             transition: all 0.3s;
             color: var(--primary);
             font-size: 20px;
+            flex-shrink: 0;
         }
 
         .logo {
@@ -250,6 +266,11 @@
             color: var(--text-muted);
         }
 
+        /* No chevron icon */
+        .station-row i.fa-chevron-down {
+            display: none;
+        }
+
         .divider-row {
             display: flex;
             align-items: center;
@@ -306,108 +327,6 @@
         .search-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(255, 159, 26, 0.3);
-        }
-
-        /* Suggestions Dropdown */
-        .suggestions-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            margin-top: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            display: none;
-        }
-
-        .suggestions-dropdown.show {
-            display: block;
-        }
-
-        .suggestion-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-            color: var(--text);
-        }
-
-        .suggestion-item:hover {
-            background: var(--surface2);
-        }
-
-        /* Bus Search Card */
-        .bus-search-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            margin: 16px 20px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .bus-search-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .bus-search-header i {
-            color: var(--primary);
-        }
-
-        .bus-search-header h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .bus-search-input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: var(--background);
-            color: var(--text);
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .bus-search-input:focus {
-            border-color: var(--primary);
-        }
-
-        .bus-search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .bus-search-btn {
-            background: linear-gradient(135deg, #FF9F1A, #E8860D);
-            border: none;
-            border-radius: 16px;
-            padding: 14px;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            cursor: pointer;
-            margin-top: 12px;
-            transition: all 0.3s;
-            color: #09090B;
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .bus-search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 159, 26, 0.3);
         }
 
         /* Bus Card */
@@ -517,10 +436,6 @@
             font-size: 14px;
         }
 
-        .trips-list {
-            margin-top: 12px;
-        }
-
         .trip-item {
             display: flex;
             align-items: center;
@@ -570,11 +485,6 @@
         .status-departed {
             background: rgba(100, 116, 139, 0.1);
             color: var(--text-secondary);
-        }
-
-        .status-delayed {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
         }
 
         /* Progress bar */
@@ -932,11 +842,6 @@
             color: var(--text);
         }
 
-        /* Page Container */
-        #pageContainer {
-            min-height: calc(100vh - 80px);
-        }
-
         /* Action Buttons */
         .action-buttons {
             display: flex;
@@ -980,6 +885,56 @@
             font-size: 13px;
             color: #09090B;
         }
+
+        #pageContainer {
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Bus Search Card */
+        .bus-search-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            margin: 20px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .bus-search-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .bus-search-header i {
+            color: var(--primary);
+            font-size: 18px;
+        }
+
+        .bus-search-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .bus-search-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--background);
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            margin-bottom: 0; /* No button, so no margin needed */
+        }
+
+        .bus-search-input:focus {
+            border-color: var(--primary);
+        }
+
+        /* Removed .bus-search-btn styles as button is removed */
     </style>
 </head>
 <body>
@@ -987,11 +942,11 @@
         <div class="app-container">
             <!-- Install Prompt -->
             <div class="install-prompt" id="installPrompt">
-                <span>📲 O MY BUS ऐप इंस्टॉल करें</span>
+                <span>📲 OB ऐप इंस्टॉल करें</span>
                 <button class="install-btn" id="installBtn">इंस्टॉल करें</button>
             </div>
 
-            <!-- स्टेशन पिकर मोडल (अपडेटेड विथ सर्च) -->
+            <!-- स्टेशन पिकर मोडल -->
             <div class="modal" id="pickerModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -1016,31 +971,8 @@
                             <i class="fas fa-times"></i>
                         </div>
                     </div>
-                    <div class="modal-body">
-                        <div class="settings-item" id="settingsNotifications">
-                            <i class="fas fa-bell"></i>
-                            <span class="settings-text">नोटिफिकेशन</span>
-                            <span class="settings-badge">जल्द आ रहा</span>
-                        </div>
-                        <div class="settings-item" id="settingsLanguage">
-                            <i class="fas fa-language"></i>
-                            <span class="settings-text">भाषा</span>
-                            <span class="settings-badge">हिन्दी</span>
-                        </div>
-                        <div class="settings-item" id="settingsAbout">
-                            <i class="fas fa-info-circle"></i>
-                            <span class="settings-text">ऐप के बारे में</span>
-                            <span class="settings-badge">v1.1.1</span>
-                        </div>
-                        <div class="settings-item" id="settingsPrivacy">
-                            <i class="fas fa-shield-alt"></i>
-                            <span class="settings-text">गोपनीयता नीति</span>
-                        </div>
-                        <div class="settings-item" id="settingsSupport">
-                            <i class="fas fa-envelope"></i>
-                            <span class="settings-text">सहायता</span>
-                            <span class="settings-badge">supportonbus@gmail.com</span>
-                        </div>
+                    <div class="modal-body" id="settingsBody">
+                        <!-- Settings items will be injected here dynamically -->
                     </div>
                 </div>
             </div>
@@ -1090,8 +1022,56 @@
         let buses = {};
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let currentPage = 'home';
-        let fromId = 'barmer_stand';
-        let toId = 'chouhtan_stand';
+        
+        // --- बैक बटन अपडेट: नेविगेशन स्टैक ---
+        let navigationStack = [{ page: 'home' }];
+
+        // नेविगेट करने के लिए हेल्पर फंक्शन
+        function navigateTo(page, params = {}) {
+            navigationStack.push({ page, params });
+            currentPage = page;
+            window.history.pushState({ stackIndex: navigationStack.length - 1 }, "");
+            renderPageByState(page, params);
+            updateNavActive(page);
+        }
+
+        function renderPageByState(page, params) {
+            if (page === 'home') renderHome();
+            else if (page === 'buses') renderBusesPage();
+            else if (page === 'favorites') renderFavorites();
+            else if (page === 'routes') renderRoutes();
+            else if (page === 'busResults') renderBusResults(params.fromId, params.toId, params.results);
+            else if (page === 'busDetail') internalShowBusDetail(params.busId, params.tripId);
+        }
+
+        window.goBack = function() {
+            if (navigationStack.length > 1) {
+                navigationStack.pop();
+                const lastState = navigationStack[navigationStack.length - 1];
+                currentPage = lastState.page;
+                renderPageByState(lastState.page, lastState.params);
+                updateNavActive(lastState.page);
+            } else {
+                currentPage = 'home';
+                renderHome();
+                updateNavActive('home');
+            }
+        };
+
+        window.addEventListener('popstate', function(event) {
+            goBack();
+        });
+
+        function updateNavActive(page) {
+            document.querySelectorAll('.nav-item').forEach(n => {
+                if (n.dataset.page === page) n.classList.add('active');
+                else n.classList.remove('active');
+            });
+        }
+
+        // स्टेशन चयन - localStorage से प्रारंभिक मान लें या प्लेसहोल्डर
+        let fromId = localStorage.getItem('lastFromId') || null;
+        let toId = localStorage.getItem('lastToId') || null;
         let pickerMode = 'from';
         let allStationsList = [];
 
@@ -1122,7 +1102,18 @@
 
         // ==================== कॉमन फंक्शन ====================
         function getStationName(id) {
-            return stations[id]?.name || id;
+            if (!id) return '';
+            return stations[id]?.nameHindi || stations[id]?.name || id;
+        }
+
+        function getAllStationNames(id) {
+            const station = stations[id];
+            if (!station) return [id];
+            let names = [station.name, station.nameHindi];
+            if (station.suggestions && Array.isArray(station.suggestions)) {
+                names = [...names, ...station.suggestions];
+            }
+            return names.filter(n => n);
         }
 
         function parseTime(t) {
@@ -1153,7 +1144,6 @@
         function getStopsForTrip(trip, route) {
             if (!route || !route.stops) return [];
             let stops = route.stops;
-            // अगर ट्रिप वापसी की है तो स्टॉप्स उल्टे कर दो
             if (trip.direction !== 'forward') {
                 stops = [...stops].reverse();
             }
@@ -1181,21 +1171,31 @@
             return `${fromStop} और ${toStop} के बीच`;
         }
 
-        // ==================== पसंदीदा फंक्शन ====================
-        function toggleFavorite(busId) {
+        // ==================== पसंदीदा फंक्शन (UPDATE: Direct UI Update) ====================
+        function toggleFavorite(busId, el) {
             const idx = favorites.indexOf(busId);
-            if (idx === -1) favorites.push(busId);
-            else favorites.splice(idx, 1);
+            if (idx === -1) {
+                favorites.push(busId);
+                el.classList.replace('far', 'fas');
+                el.style.color = '#EF4444'; // Red
+            } else {
+                favorites.splice(idx, 1);
+                el.classList.replace('fas', 'far');
+                el.style.color = '#94A3B8'; // Muted Gray
+            }
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            if (currentPage === 'favorites') renderFavorites();
-            // अगर बस कार्ड कहीं और दिख रहे हैं तो उनके आइकन भी अपडेट करने होंगे, लेकिन सरलता के लिए हम पेज री-रेंडर नहीं कर रहे
+            
+            // If we are on the favorites page, we should refresh to remove the item
+            if (currentPage === 'favorites') {
+                setTimeout(renderFavorites, 300); // Small delay for visual feedback
+            }
         }
 
         function isFavorite(busId) {
             return favorites.includes(busId);
         }
 
-        // ==================== स्टेशन पिकर (सर्च के साथ) ====================
+        // ==================== स्टेशन पिकर ====================
         const pickerModal = document.getElementById('pickerModal');
         const pickerList = document.getElementById('pickerList');
         const pickerTitle = document.getElementById('pickerTitle');
@@ -1203,17 +1203,24 @@
         const stationSearchInput = document.getElementById('stationSearchInput');
 
         function renderPickerList(filterText = '') {
-            const filtered = allStationsList.filter(s => 
-                s.name.toLowerCase().includes(filterText.toLowerCase())
-            );
+            const filtered = allStationsList.filter(s => {
+                const searchTerm = filterText.toLowerCase();
+                const allNames = getAllStationNames(s.id).map(n => n.toLowerCase());
+                return allNames.some(name => name.includes(searchTerm));
+            });
+            
             pickerList.innerHTML = '';
-            filtered.forEach(({ id, name }) => {
+            filtered.forEach(({ id }) => {
+                const displayName = getStationName(id);
                 const item = document.createElement('div');
                 item.className = `picker-item ${(pickerMode === 'from' ? fromId : toId) === id ? 'selected' : ''}`;
-                item.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${name}</span><i class="fas fa-check check"></i>`;
+                item.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${displayName}</span><i class="fas fa-check check"></i>`;
                 item.addEventListener('click', () => {
                     if (pickerMode === 'from') fromId = id;
                     else toId = id;
+                    // स्टेशन चुनने पर localStorage में सेव करें
+                    if (fromId) localStorage.setItem('lastFromId', fromId);
+                    if (toId) localStorage.setItem('lastToId', toId);
                     updateStationTexts();
                     pickerModal.classList.remove('show');
                 });
@@ -1233,13 +1240,52 @@
         // ==================== सेटिंग मोडल ====================
         const settingsModal = document.getElementById('settingsModal');
         const closeSettings = document.getElementById('closeSettings');
-        document.getElementById('settingsNotifications').addEventListener('click', () => alert('माफ़ करें यह सुविधा जल्द ही उपलब्ध होगी'));
-        document.getElementById('settingsLanguage').addEventListener('click', () => alert('भाषा विकल्प जल्द ही उपलब्ध होगा। अभी केवल हिन्दी उपलब्ध है।'));
-        document.getElementById('settingsAbout').addEventListener('click', () => alert('O MY BUS बस ट्रैकर\nवर्शन 1.1.1\n© 2025'));
-        document.getElementById('settingsPrivacy').addEventListener('click', () => alert('माफ़ करें यह सुविधा जल्द ही उपलब्ध होगी'));
-        document.getElementById('settingsSupport').addEventListener('click', () => {
-            window.location.href = 'mailto:supportonbus@gmail.com?subject=O MY BUS ऐप सहायता';
-        });
+        const settingsBody = document.getElementById('settingsBody');
+
+        function renderSettings() {
+            settingsBody.innerHTML = `
+                <div class="settings-item" id="settingsNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="settings-text">नोटिफिकेशन</span>
+                    <span class="settings-badge">जल्द आ रहा</span>
+                </div>
+                <div class="settings-item" id="settingsLanguage">
+                    <i class="fas fa-language"></i>
+                    <span class="settings-text">भाषा</span>
+                    <span class="settings-badge">हिन्दी</span>
+                </div>
+                <div class="settings-item" id="settingsAbout">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="settings-text">ऐप के बारे में</span>
+                    <span class="settings-badge">v1.2.0</span>
+                </div>
+                <div class="settings-item" id="settingsPrivacy">
+                    <i class="fas fa-shield-alt"></i>
+                    <span class="settings-text">गोपनीयता नीति</span>
+                </div>
+                <div class="settings-item" id="settingsSupport">
+                    <i class="fas fa-envelope"></i>
+                    <span class="settings-text">सहायता</span>
+                    <span class="settings-badge">supportonbus@gmail.com</span>
+                </div>
+            `;
+
+            document.getElementById('settingsNotifications').addEventListener('click', showFeatureNotReady);
+            document.getElementById('settingsLanguage').addEventListener('click', showFeatureNotReady);
+            document.getElementById('settingsAbout').addEventListener('click', showFeatureNotReady);
+            document.getElementById('settingsPrivacy').addEventListener('click', showFeatureNotReady);
+            document.getElementById('settingsSupport').addEventListener('click', showFeatureNotReady);
+        }
+
+        // Updated function: show "सुविधा जल्द आ रही है"
+        function showFeatureNotReady() {
+            alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।');
+        }
+
+        // For feature boxes and other buttons that previously called showDownloadPrompt
+        function showFeatureNotReady() {
+            alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।');
+        }
 
         closeSettings.addEventListener('click', () => settingsModal.classList.remove('show'));
         settingsModal.addEventListener('click', (e) => {
@@ -1251,8 +1297,9 @@
             const fromName = getStationName(bus.fromStation);
             const toName = getStationName(bus.toStation);
             const route = routes[bus.routeId];
+            const isFav = isFavorite(id);
             const favIcon = showFavoriteIcon ? 
-                `<i class="${isFavorite(id) ? 'fas' : 'far'} fa-heart" style="color: #EF4444; font-size: 18px; cursor: pointer;" onclick="event.stopPropagation(); toggleFavorite('${id}')"></i>` : '';
+                `<i class="${isFav ? 'fas' : 'far'} fa-heart" style="color: ${isFav ? '#EF4444' : '#94A3B8'}; font-size: 18px; cursor: pointer;" onclick="event.stopPropagation(); toggleFavorite('${id}', this)"></i>` : '';
             
             let tripsHtml = '';
             if (bus.trips && bus.trips.length) {
@@ -1324,7 +1371,6 @@
                     if (fromIdx < toIdx) {
                         results.push([id, bus]);
                     } else if (fromIdx > toIdx && bus.trips.some(t => t.direction !== 'forward')) {
-                        // अगर वापसी ट्रिप है तो ही दिखाओ
                         results.push([id, bus]);
                     }
                 }
@@ -1349,13 +1395,16 @@
             });
         }
 
-        // ==================== होम पेज (अपडेटेड) ====================
+        // ==================== होम पेज ====================
         function renderHome() {
             const container = document.getElementById('pageContainer');
+            // प्लेसहोल्डर टेक्स्ट
+            const fromText = fromId ? getStationName(fromId) : "कहाँ से...";
+            const toText = toId ? getStationName(toId) : "कहाँ तक...";
             container.innerHTML = `
                 <div class="hero-section">
                     <div class="hero-top">
-                        <div class="badge">
+                        <div class="badge">                          
                             <span class="badge-dot"></span>
                             <span class="badge-text">100% सटीक लाइव ट्रैकिंग</span>
                         </div>
@@ -1369,7 +1418,7 @@
                         </div>
                     </div>
 
-                    <div class="logo">O MY BUS</div>
+                    <div class="logo">Oh my bus</div>
 
                     <div class="hero-title">
                         आपकी यात्रा, <span class="highlight">हमारी जिम्मेदारी</span>
@@ -1384,8 +1433,8 @@
 
                     <div class="station-row" id="fromStation">
                         <div class="station-dot start"></div>
-                        <span class="station-text" id="fromText">${getStationName(fromId)}</span>
-                        <i class="fas fa-chevron-down" style="color: var(--text-muted);"></i>
+                        <span class="station-text ${!fromId ? 'placeholder' : ''}" id="fromText">${fromText}</span>
+                        <!-- chevron removed -->
                     </div>
 
                     <div class="divider-row">
@@ -1398,8 +1447,8 @@
 
                     <div class="station-row" id="toStation">
                         <div class="station-dot end"></div>
-                        <span class="station-text" id="toText">${getStationName(toId)}</span>
-                        <i class="fas fa-chevron-down" style="color: var(--text-muted);"></i>
+                        <span class="station-text ${!toId ? 'placeholder' : ''}" id="toText">${toText}</span>
+                        <!-- chevron removed -->
                     </div>
 
                     <button class="search-btn" id="homeSearchBtn">
@@ -1408,7 +1457,6 @@
                     </button>
                 </div>
 
-                <!-- सजेशन रूट -->
                 <div class="suggestions-section">
                     <div class="section-title">लोकप्रिय मार्ग</div>
                     <div class="suggestion-chips">
@@ -1421,21 +1469,20 @@
                     </div>
                 </div>
 
-                <!-- फीचर बॉक्स -->
                 <div class="features-grid">
-                    <div class="feature-box" onclick="featureNotAvailable()">
+                    <div class="feature-box" onclick="showFeatureNotReady()">
                         <i class="fas fa-clock"></i>
                         <span>सही समय</span>
                     </div>
-                    <div class="feature-box" onclick="featureNotAvailable()">
+                    <div class="feature-box" onclick="showFeatureNotReady()">
                         <i class="fas fa-shield-alt"></i>
                         <span>सुरक्षित यात्री</span>
                     </div>
-                    <div class="feature-box" onclick="featureNotAvailable()">
+                    <div class="feature-box" onclick="showFeatureNotReady()">
                         <i class="fas fa-map-marked-alt"></i>
                         <span>लाइव ट्रैकिंग</span>
                     </div>
-                    <div class="feature-box" onclick="featureNotAvailable()">
+                    <div class="feature-box" onclick="showFeatureNotReady()">
                         <i class="fas fa-bell"></i>
                         <span>अलर्ट</span>
                     </div>
@@ -1450,6 +1497,7 @@
             });
 
             document.getElementById('settingsToggle').addEventListener('click', () => {
+                renderSettings();
                 settingsModal.classList.add('show');
             });
 
@@ -1473,41 +1521,49 @@
                 const temp = fromId;
                 fromId = toId;
                 toId = temp;
-                document.getElementById('fromText').textContent = getStationName(fromId);
-                document.getElementById('toText').textContent = getStationName(toId);
+                updateStationTexts();
+                // स्वैप करने पर localStorage में सेव करें
+                if (fromId) localStorage.setItem('lastFromId', fromId);
+                if (toId) localStorage.setItem('lastToId', toId);
             });
 
             document.getElementById('homeSearchBtn').addEventListener('click', () => {
+                if (!fromId || !toId) {
+                    alert('कृपया पहले स्टेशन चुनें');
+                    return;
+                }
                 const results = searchBuses(fromId, toId);
                 const sorted = sortBusesByTime(results);
-                renderBusResults(fromId, toId, sorted);
-                currentPage = 'busResults';
+                navigateTo('busResults', { fromId, toId, results: sorted });
             });
         }
 
-        // हैंडलर फॉर सजेशन रूट
         window.handleSuggestionRoute = function(from, to) {
             fromId = from;
             toId = to;
+            localStorage.setItem('lastFromId', fromId);
+            localStorage.setItem('lastToId', toId);
             const results = searchBuses(from, to);
             const sorted = sortBusesByTime(results);
-            renderBusResults(from, to, sorted);
-            currentPage = 'busResults';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        };
-
-        window.featureNotAvailable = function() {
-            alert('माफ़ करें यह सुविधा जल्द ही उपलब्ध होगी');
+            navigateTo('busResults', { fromId: from, toId: to, results: sorted });
         };
 
         function updateStationTexts() {
             const fromEl = document.getElementById('fromText');
             const toEl = document.getElementById('toText');
-            if (fromEl) fromEl.textContent = getStationName(fromId);
-            if (toEl) toEl.textContent = getStationName(toId);
+            if (fromEl) {
+                fromEl.textContent = fromId ? getStationName(fromId) : "कहाँ से...";
+                if (!fromId) fromEl.classList.add('placeholder');
+                else fromEl.classList.remove('placeholder');
+            }
+            if (toEl) {
+                toEl.textContent = toId ? getStationName(toId) : "कहाँ तक...";
+                if (!toId) toEl.classList.add('placeholder');
+                else toEl.classList.remove('placeholder');
+            }
         }
 
-        // ==================== बसें पेज ====================
+        // ==================== बसें पेज (modified: no search button, auto-search on input) ====================
         function renderBusesPage(initialResults = null) {
             const container = document.getElementById('pageContainer');
             container.innerHTML = `
@@ -1516,36 +1572,40 @@
                         <i class="fas fa-bus"></i>
                         <h3>बस खोजें</h3>
                     </div>
-                    <input type="text" class="bus-search-input" id="busSearchInput" placeholder="बस नाम या नंबर...">
-                    <div class="suggestions-dropdown" id="busSuggestions"></div>
-                    <button class="bus-search-btn" id="busSearchBtn">
-                        <i class="fas fa-search"></i> सर्च करें
-                    </button>
+                    <input type="text" class="bus-search-input" id="busSearchInput" placeholder="बस नाम या नंबर..." autocomplete="off">
                 </div>
                 <div id="busesContainer"></div>
             `;
 
             const busesContainer = document.getElementById('busesContainer');
+            const searchInput = document.getElementById('busSearchInput');
 
-            if (initialResults && initialResults.length > 0) {
-                busesContainer.innerHTML = initialResults.map(([id, bus]) => renderBusCard(id, bus)).join('');
-            } else {
-                busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बसें खोजने के लिए ऊपर सर्च करें</p></div>';
-            }
-
-            document.getElementById('busSearchBtn').addEventListener('click', () => {
-                const term = document.getElementById('busSearchInput').value.trim();
+            // Function to perform search and update UI
+            const performSearch = () => {
+                const term = searchInput.value.trim();
                 if (!term) {
-                    busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बसें खोजने के लिए ऊपर सर्च करें</p></div>';
+                    busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बस नाम या नंबर डालें</p></div>';
                     return;
                 }
                 const results = searchBusesByNameOrNumber(term);
-                busesContainer.innerHTML = results.map(([id, bus]) => renderBusCard(id, bus)).join('');
-            });
+                if (results.length === 0) {
+                    busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>कोई बस नहीं मिली</p></div>';
+                } else {
+                    busesContainer.innerHTML = results.map(([id, bus]) => renderBusCard(id, bus)).join('');
+                }
+            };
 
-            document.getElementById('busSearchInput').addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') document.getElementById('busSearchBtn').click();
-            });
+            // Attach input event listener (auto-search)
+            searchInput.addEventListener('input', performSearch);
+
+            // If initialResults is provided (though not used in current flow, but we keep consistency)
+            if (initialResults && initialResults.length > 0) {
+                // This case might not happen because renderBusesPage is called without params normally.
+                // We'll just update input value? Not needed.
+            } else {
+                // Show placeholder empty state
+                busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बस नाम या नंबर डालें</p></div>';
+            }
         }
 
         // ==================== पसंदीदा पेज ====================
@@ -1609,20 +1669,24 @@
         window.handleRouteClick = function(from, to) {
             fromId = from;
             toId = to;
+            localStorage.setItem('lastFromId', fromId);
+            localStorage.setItem('lastToId', toId);
             const results = searchBuses(from, to);
             const sorted = sortBusesByTime(results);
-            renderBusResults(from, to, sorted);
-            currentPage = 'busResults';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            navigateTo('busResults', { fromId: from, toId: to, results: sorted });
         };
 
-        // ==================== बस विवरण (अपडेटेड) ====================
+        // ==================== बस विवरण ====================
         window.showBusDetail = function(busId, tripId) {
+            navigateTo('busDetail', { busId, tripId });
+        };
+
+        function internalShowBusDetail(busId, tripId) {
             const bus = buses[busId];
             if (!bus) return;
             const route = routes[bus.routeId];
+            const container = document.getElementById('pageContainer');
             
-            // अगर tripId दिया है तो सिर्फ वही ट्रिप दिखाओ, वरना सारी ट्रिप्स बिना एक्शन बटन के
             if (tripId) {
                 const trip = bus.trips.find(t => t.id === tripId);
                 if (!trip) return;
@@ -1631,7 +1695,6 @@
                 const location = getCurrentLocation(trip, route);
                 const stops = getStopsForTrip(trip, route);
 
-                const container = document.getElementById('pageContainer');
                 container.innerHTML = `
                     <div style="padding:16px;">
                         <button onclick="goBack()" style="background:none; border:none; color:var(--primary); margin-bottom:16px;"><i class="fas fa-arrow-left"></i> वापस</button>
@@ -1668,14 +1731,13 @@
                             ` : ''}
                             <div class="action-buttons">
                                 <div class="action-btn share-btn" onclick="event.stopPropagation(); shareBus('${busId}')"><i class="fas fa-share-alt"></i></div>
-                                <div class="action-btn ticket-btn" onclick="event.stopPropagation(); alert('यह सुविधा जल्द ही उपलब्ध होगी।')"><i class="fas fa-ticket-alt"></i> टिकट बुक करें</div>
-                                <div class="action-btn track-btn" onclick="event.stopPropagation(); alert('यह सुविधा जल्द ही उपलब्ध होगी।')"><i class="fas fa-map-marker-alt"></i> लाइव ट्रैक</div>
+                                <div class="action-btn ticket-btn" onclick="event.stopPropagation(); showFeatureNotReady()"><i class="fas fa-ticket-alt"></i> टिकट बुक करें</div>
+                                <div class="action-btn track-btn" onclick="event.stopPropagation(); showFeatureNotReady()"><i class="fas fa-map-marker-alt"></i> लाइव ट्रैक</div>
                             </div>
                         </div>
                     </div>
                 `;
             } else {
-                // सिर्फ ट्रिप्स की सूची दिखाओ, बिना एक्शन बटन के
                 let tripsHtml = '';
                 if (bus.trips && bus.trips.length) {
                     tripsHtml = bus.trips.map(trip => {
@@ -1703,7 +1765,6 @@
                     }).join('');
                 }
 
-                const container = document.getElementById('pageContainer');
                 container.innerHTML = `
                     <div style="padding:16px;">
                         <button onclick="goBack()" style="background:none; border:none; color:var(--primary); margin-bottom:16px;"><i class="fas fa-arrow-left"></i> वापस</button>
@@ -1712,14 +1773,14 @@
                     </div>
                 `;
             }
-        };
+        }
 
         window.shareBus = function(busId) {
             const bus = buses[busId];
             if (!bus) return;
-            const shareText = `🚌 बस: ${bus.busName} (${bus.busNumber})\nरूट: ${getStationName(bus.fromStation)} → ${getStationName(bus.toStation)}\nकिराया: ${bus.fare}\nOB ऐप पर देखें: ${window.location.href}`;
+            const shareText = `🚌 बस: ${bus.busName} (${bus.busNumber})\nरूट: ${getStationName(bus.fromStation)} → ${getStationName(bus.toStation)}\nकिराया: ${bus.fare}\nOh my bus ऐप पर देखें: ${window.location.href}`;
             if (navigator.share) {
-                navigator.share({ title: 'OB बस ट्रैकर', text: shareText, url: window.location.href });
+                navigator.share({ title: 'Oh my bus ट्रैकर', text: shareText, url: window.location.href });
             } else {
                 navigator.clipboard.writeText(shareText);
                 alert('जानकारी कॉपी हो गई!');
@@ -1778,45 +1839,15 @@
             resultsContainer.innerHTML = results.map(([id, bus]) => renderBusCard(id, bus)).join('');
         }
 
-        function renderSortedBusResults(fromId, toId) {
-            const results = searchBuses(fromId, toId);
-            const sorted = sortBusesByTime(results);
-            renderBusResults(fromId, toId, sorted);
-        }
-
-        // ==================== नेविगेशन ====================
+        // ==================== नेविगेशन इवेन्ट्स ====================
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
                 const page = item.dataset.page;
-                currentPage = page;
-                renderPage(page);
+                if (page === currentPage && navigationStack.length === 1) return;
+                navigateTo(page);
             });
         });
-
-        function renderPage(page) {
-            if (page === 'home') renderHome();
-            else if (page === 'buses') renderBusesPage();
-            else if (page === 'favorites') renderFavorites();
-            else if (page === 'routes') renderRoutes();
-            else if (page === 'busResults') {
-                // busResults पेज पहले से रेंडर हो चुका होगा
-                // कुछ नहीं करना
-            }
-        }
-
-        window.goBack = function() {
-            if (currentPage === 'busResults' || currentPage === 'busDetail') {
-                currentPage = 'home';
-                renderHome();
-                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                document.querySelector('[data-page="home"]').classList.add('active');
-            } else {
-                renderPage(currentPage);
-            }
-        };
 
         // ==================== फायरबेस डेटा लोड ====================
         function loadFirebaseData() {
@@ -1828,18 +1859,18 @@
                 stations = stationsSnap.val() || {};
                 routes = routesSnap.val() || {};
                 buses = busesSnap.val() || {};
-                allStationsList = Object.entries(stations).map(([id, s]) => ({ id, name: s.name }));
+                allStationsList = Object.entries(stations).map(([id, s]) => ({ 
+                    id, 
+                    name: s.name,
+                    nameHindi: s.nameHindi || s.name 
+                }));
+                
+                window.history.replaceState({ stackIndex: 0 }, "");
                 renderHome();
             }).catch(console.error);
         }
 
-        // ==================== इनिशियलाइज़ ====================
         loadFirebaseData();
-
-        // ग्लोबल में जोड़ें
-        window.renderBusResults = renderBusResults;
-        window.renderSortedBusResults = renderSortedBusResults;
-        window.updateStationTexts = updateStationTexts;
     </script>
 </body>
 </html>
