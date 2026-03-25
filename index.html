@@ -416,6 +416,32 @@
             color: var(--primary);
         }
 
+        .bus-amenities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+            padding: 8px 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .amenity-tag {
+            background: var(--surface2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .amenity-tag i {
+            color: var(--primary);
+            font-size: 12px;
+        }
+
         .bus-details {
             display: flex;
             align-items: center;
@@ -927,14 +953,12 @@
             color: var(--text);
             font-size: 15px;
             outline: none;
-            margin-bottom: 0; /* No button, so no margin needed */
+            margin-bottom: 0;
         }
 
         .bus-search-input:focus {
             border-color: var(--primary);
         }
-
-        /* Removed .bus-search-btn styles as button is removed */
     </style>
 </head>
 <body>
@@ -971,9 +995,7 @@
                             <i class="fas fa-times"></i>
                         </div>
                     </div>
-                    <div class="modal-body" id="settingsBody">
-                        <!-- Settings items will be injected here dynamically -->
-                    </div>
+                    <div class="modal-body" id="settingsBody"></div>
                 </div>
             </div>
 
@@ -1026,7 +1048,6 @@
         // --- बैक बटन अपडेट: नेविगेशन स्टैक ---
         let navigationStack = [{ page: 'home' }];
 
-        // नेविगेट करने के लिए हेल्पर फंक्शन
         function navigateTo(page, params = {}) {
             navigationStack.push({ page, params });
             currentPage = page;
@@ -1058,7 +1079,7 @@
             }
         };
 
-        window.addEventListener('popstate', function(event) {
+        window.addEventListener('popstate', function() {
             goBack();
         });
 
@@ -1069,7 +1090,6 @@
             });
         }
 
-        // स्टेशन चयन - localStorage से प्रारंभिक मान लें या प्लेसहोल्डर
         let fromId = localStorage.getItem('lastFromId') || null;
         let toId = localStorage.getItem('lastToId') || null;
         let pickerMode = 'from';
@@ -1171,24 +1191,20 @@
             return `${fromStop} और ${toStop} के बीच`;
         }
 
-        // ==================== पसंदीदा फंक्शन (UPDATE: Direct UI Update) ====================
+        // ==================== पसंदीदा फंक्शन ====================
         function toggleFavorite(busId, el) {
             const idx = favorites.indexOf(busId);
             if (idx === -1) {
                 favorites.push(busId);
                 el.classList.replace('far', 'fas');
-                el.style.color = '#EF4444'; // Red
+                el.style.color = '#EF4444';
             } else {
                 favorites.splice(idx, 1);
                 el.classList.replace('fas', 'far');
-                el.style.color = '#94A3B8'; // Muted Gray
+                el.style.color = '#94A3B8';
             }
             localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            // If we are on the favorites page, we should refresh to remove the item
-            if (currentPage === 'favorites') {
-                setTimeout(renderFavorites, 300); // Small delay for visual feedback
-            }
+            if (currentPage === 'favorites') setTimeout(renderFavorites, 300);
         }
 
         function isFavorite(busId) {
@@ -1208,7 +1224,6 @@
                 const allNames = getAllStationNames(s.id).map(n => n.toLowerCase());
                 return allNames.some(name => name.includes(searchTerm));
             });
-            
             pickerList.innerHTML = '';
             filtered.forEach(({ id }) => {
                 const displayName = getStationName(id);
@@ -1218,7 +1233,6 @@
                 item.addEventListener('click', () => {
                     if (pickerMode === 'from') fromId = id;
                     else toId = id;
-                    // स्टेशन चुनने पर localStorage में सेव करें
                     if (fromId) localStorage.setItem('lastFromId', fromId);
                     if (toId) localStorage.setItem('lastToId', toId);
                     updateStationTexts();
@@ -1228,14 +1242,9 @@
             });
         }
 
-        stationSearchInput.addEventListener('input', (e) => {
-            renderPickerList(e.target.value);
-        });
-
+        stationSearchInput.addEventListener('input', (e) => renderPickerList(e.target.value));
         closePicker.addEventListener('click', () => pickerModal.classList.remove('show'));
-        pickerModal.addEventListener('click', (e) => {
-            if (e.target === pickerModal) pickerModal.classList.remove('show');
-        });
+        pickerModal.addEventListener('click', (e) => { if (e.target === pickerModal) pickerModal.classList.remove('show'); });
 
         // ==================== सेटिंग मोडल ====================
         const settingsModal = document.getElementById('settingsModal');
@@ -1269,28 +1278,31 @@
                     <span class="settings-badge">supportonbus@gmail.com</span>
                 </div>
             `;
-
-            document.getElementById('settingsNotifications').addEventListener('click', showFeatureNotReady);
-            document.getElementById('settingsLanguage').addEventListener('click', showFeatureNotReady);
-            document.getElementById('settingsAbout').addEventListener('click', showFeatureNotReady);
-            document.getElementById('settingsPrivacy').addEventListener('click', showFeatureNotReady);
-            document.getElementById('settingsSupport').addEventListener('click', showFeatureNotReady);
-        }
-
-        // Updated function: show "सुविधा जल्द आ रही है"
-        function showFeatureNotReady() {
-            alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।');
-        }
-
-        // For feature boxes and other buttons that previously called showDownloadPrompt
-        function showFeatureNotReady() {
-            alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।');
+            document.getElementById('settingsNotifications').addEventListener('click', () => alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।'));
+            document.getElementById('settingsLanguage').addEventListener('click', () => alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।'));
+            document.getElementById('settingsAbout').addEventListener('click', () => alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।'));
+            document.getElementById('settingsPrivacy').addEventListener('click', () => alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।'));
+            document.getElementById('settingsSupport').addEventListener('click', () => alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।'));
         }
 
         closeSettings.addEventListener('click', () => settingsModal.classList.remove('show'));
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) settingsModal.classList.remove('show');
-        });
+        settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('show'); });
+
+        // ==================== एमेनिटी आइकन ====================
+        function renderAmenities(bus) {
+            let amenities = [];
+            if (bus.amenities) {
+                if (bus.amenities.ac) amenities.push('<span class="amenity-tag"><i class="fas fa-wind"></i> AC</span>');
+                if (bus.amenities.sleeper) amenities.push('<span class="amenity-tag"><i class="fas fa-bed"></i> स्लीपर</span>');
+                if (bus.amenities.wifi) amenities.push('<span class="amenity-tag"><i class="fas fa-wifi"></i> WiFi</span>');
+                if (bus.amenities.charging) amenities.push('<span class="amenity-tag"><i class="fas fa-bolt"></i> चार्जिंग</span>');
+                if (bus.amenities.water) amenities.push('<span class="amenity-tag"><i class="fas fa-water"></i> पानी</span>');
+            }
+            if (amenities.length === 0) {
+                amenities.push('<span class="amenity-tag"><i class="fas fa-chair"></i> सीटर</span>');
+            }
+            return `<div class="bus-amenities">${amenities.join(' ')}</div>`;
+        }
 
         // ==================== रेंडर बस कार्ड ====================
         function renderBusCard(id, bus, showFavoriteIcon = true) {
@@ -1316,6 +1328,8 @@
                     `;
                 }).join('');
             }
+
+            const amenitiesHtml = renderAmenities(bus);
 
             return `
                 <div class="bus-card" onclick="showBusDetail('${id}')">
@@ -1344,6 +1358,8 @@
                             <div class="station-sub">${toName}</div>
                         </div>
                     </div>
+
+                    ${amenitiesHtml}
 
                     <div class="bus-details">
                         <div class="detail-item"><i class="fas fa-chair"></i> ${bus.availableSeats || 0}/${bus.totalSeats || 0}</div>
@@ -1398,7 +1414,6 @@
         // ==================== होम पेज ====================
         function renderHome() {
             const container = document.getElementById('pageContainer');
-            // प्लेसहोल्डर टेक्स्ट
             const fromText = fromId ? getStationName(fromId) : "कहाँ से...";
             const toText = toId ? getStationName(toId) : "कहाँ तक...";
             container.innerHTML = `
@@ -1434,7 +1449,6 @@
                     <div class="station-row" id="fromStation">
                         <div class="station-dot start"></div>
                         <span class="station-text ${!fromId ? 'placeholder' : ''}" id="fromText">${fromText}</span>
-                        <!-- chevron removed -->
                     </div>
 
                     <div class="divider-row">
@@ -1448,7 +1462,6 @@
                     <div class="station-row" id="toStation">
                         <div class="station-dot end"></div>
                         <span class="station-text ${!toId ? 'placeholder' : ''}" id="toText">${toText}</span>
-                        <!-- chevron removed -->
                     </div>
 
                     <button class="search-btn" id="homeSearchBtn">
@@ -1470,19 +1483,19 @@
                 </div>
 
                 <div class="features-grid">
-                    <div class="feature-box" onclick="showFeatureNotReady()">
+                    <div class="feature-box" onclick="alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')">
                         <i class="fas fa-clock"></i>
                         <span>सही समय</span>
                     </div>
-                    <div class="feature-box" onclick="showFeatureNotReady()">
+                    <div class="feature-box" onclick="alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')">
                         <i class="fas fa-shield-alt"></i>
                         <span>सुरक्षित यात्री</span>
                     </div>
-                    <div class="feature-box" onclick="showFeatureNotReady()">
+                    <div class="feature-box" onclick="alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')">
                         <i class="fas fa-map-marked-alt"></i>
                         <span>लाइव ट्रैकिंग</span>
                     </div>
-                    <div class="feature-box" onclick="showFeatureNotReady()">
+                    <div class="feature-box" onclick="alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')">
                         <i class="fas fa-bell"></i>
                         <span>अलर्ट</span>
                     </div>
@@ -1522,7 +1535,6 @@
                 fromId = toId;
                 toId = temp;
                 updateStationTexts();
-                // स्वैप करने पर localStorage में सेव करें
                 if (fromId) localStorage.setItem('lastFromId', fromId);
                 if (toId) localStorage.setItem('lastToId', toId);
             });
@@ -1563,7 +1575,7 @@
             }
         }
 
-        // ==================== बसें पेज (modified: no search button, auto-search on input) ====================
+        // ==================== बसें पेज ====================
         function renderBusesPage(initialResults = null) {
             const container = document.getElementById('pageContainer');
             container.innerHTML = `
@@ -1580,7 +1592,6 @@
             const busesContainer = document.getElementById('busesContainer');
             const searchInput = document.getElementById('busSearchInput');
 
-            // Function to perform search and update UI
             const performSearch = () => {
                 const term = searchInput.value.trim();
                 if (!term) {
@@ -1595,17 +1606,8 @@
                 }
             };
 
-            // Attach input event listener (auto-search)
             searchInput.addEventListener('input', performSearch);
-
-            // If initialResults is provided (though not used in current flow, but we keep consistency)
-            if (initialResults && initialResults.length > 0) {
-                // This case might not happen because renderBusesPage is called without params normally.
-                // We'll just update input value? Not needed.
-            } else {
-                // Show placeholder empty state
-                busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बस नाम या नंबर डालें</p></div>';
-            }
+            busesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bus"></i><p>बस नाम या नंबर डालें</p></div>';
         }
 
         // ==================== पसंदीदा पेज ====================
@@ -1614,12 +1616,7 @@
             const favBuses = Object.entries(buses).filter(([id]) => isFavorite(id));
             
             if (favBuses.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-heart"></i>
-                        <p>कोई पसंदीदा बस नहीं</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-heart"></i><p>कोई पसंदीदा बस नहीं</p></div>`;
                 return;
             }
 
@@ -1629,14 +1626,12 @@
                 </div>
                 <div id="favoritesList"></div>
             `;
-
             document.getElementById('favoritesList').innerHTML = favBuses.map(([id, bus]) => renderBusCard(id, bus)).join('');
         }
 
         // ==================== रूट पेज ====================
         function renderRoutes() {
             const container = document.getElementById('pageContainer');
-            
             const routesList = Object.entries(routes).map(([id, route]) => `
                 <div class="bus-card" onclick="handleRouteClick('${route.fromStation}', '${route.toStation}')">
                     <h4 style="color: var(--primary); margin-bottom: 8px;">${route.name}</h4>
@@ -1657,13 +1652,7 @@
                     </div>
                 </div>
             `).join('');
-
-            container.innerHTML = `
-                <div style="padding: 20px;">
-                    <h3 style="color: var(--text); margin-bottom: 16px;">सभी मार्ग</h3>
-                    ${routesList || '<div class="empty-state">कोई मार्ग नहीं</div>'}
-                </div>
-            `;
+            container.innerHTML = `<div style="padding: 20px;"><h3 style="color: var(--text); margin-bottom: 16px;">सभी मार्ग</h3>${routesList || '<div class="empty-state">कोई मार्ग नहीं</div>'}</div>`;
         }
 
         window.handleRouteClick = function(from, to) {
@@ -1686,6 +1675,7 @@
             if (!bus) return;
             const route = routes[bus.routeId];
             const container = document.getElementById('pageContainer');
+            const amenitiesHtml = renderAmenities(bus);
             
             if (tripId) {
                 const trip = bus.trips.find(t => t.id === tripId);
@@ -1705,6 +1695,8 @@
                                 </span>
                                 ${trip.delay > 0 ? `<span style="background: rgba(239,68,68,0.1); color: var(--error); padding: 4px 8px; border-radius: 6px; font-size: 12px;"><i class="fas fa-exclamation-triangle"></i> ${trip.delay} मिनट देरी</span>` : ''}
                             </div>
+                            <h3 style="margin-bottom:10px;">${bus.busName}</h3>
+                            ${amenitiesHtml}
                             <div style="display: flex; align-items: center; margin-bottom: 12px;">
                                 <div style="flex:1;"><div style="font-size:20px; font-weight:700;">${trip.departure}</div><div style="font-size:12px;">प्रस्थान</div></div>
                                 <div style="padding:0 16px;"><i class="fas fa-arrow-right" style="color:var(--text-muted);"></i></div>
@@ -1731,8 +1723,8 @@
                             ` : ''}
                             <div class="action-buttons">
                                 <div class="action-btn share-btn" onclick="event.stopPropagation(); shareBus('${busId}')"><i class="fas fa-share-alt"></i></div>
-                                <div class="action-btn ticket-btn" onclick="event.stopPropagation(); showFeatureNotReady()"><i class="fas fa-ticket-alt"></i> टिकट बुक करें</div>
-                                <div class="action-btn track-btn" onclick="event.stopPropagation(); showFeatureNotReady()"><i class="fas fa-map-marker-alt"></i> लाइव ट्रैक</div>
+                                <div class="action-btn ticket-btn" onclick="event.stopPropagation(); alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')"><i class="fas fa-ticket-alt"></i> टिकट बुक करें</div>
+                                <div class="action-btn track-btn" onclick="event.stopPropagation(); alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')"><i class="fas fa-map-marker-alt"></i> लाइव ट्रैक</div>
                             </div>
                         </div>
                     </div>
@@ -1768,7 +1760,19 @@
                 container.innerHTML = `
                     <div style="padding:16px;">
                         <button onclick="goBack()" style="background:none; border:none; color:var(--primary); margin-bottom:16px;"><i class="fas fa-arrow-left"></i> वापस</button>
-                        <h3 style="margin-bottom:12px;">${bus.busName} (${bus.busNumber})</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h3>${bus.busName} (${bus.busNumber})</h3>
+                            <div class="bus-fare" style="font-size: 24px;">${bus.fare}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px;"><i class="fas fa-chair"></i> सीटें: ${bus.availableSeats || 0}/${bus.totalSeats || 0}</span>
+                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px;"><i class="fas fa-road"></i> दूरी: ${route?.totalDistance || '60 किमी'}</span>
+                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px; color: ${bus.crowd === 'कम' ? 'var(--success)' : bus.crowd === 'मध्यम' ? 'var(--warning)' : 'var(--error)'}">
+                                <i class="fas fa-users"></i> ${bus.crowd}
+                            </span>
+                        </div>
+                        ${amenitiesHtml}
+                        <h4 style="margin: 15px 0 10px;">समय सारणी</h4>
                         ${tripsHtml}
                     </div>
                 `;
@@ -1823,7 +1827,6 @@
             `;
 
             const resultsContainer = document.getElementById('searchResultsContainer');
-            
             if (results.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="empty-state">
@@ -1835,7 +1838,6 @@
                 `;
                 return;
             }
-
             resultsContainer.innerHTML = results.map(([id, bus]) => renderBusCard(id, bus)).join('');
         }
 
@@ -1864,7 +1866,6 @@
                     name: s.name,
                     nameHindi: s.nameHindi || s.name 
                 }));
-                
                 window.history.replaceState({ stackIndex: 0 }, "");
                 renderHome();
             }).catch(console.error);
