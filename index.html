@@ -980,7 +980,7 @@
                         </div>
                     </div>
                     <div class="picker-search">
-                        <input type="text" id="stationSearchInput" placeholder="स्टेशन खोजें..." autocomplete="off">
+                        <input type="text" id="stationSearchInput" placeholder="स्टेशन या शहर खोजें..." autocomplete="off">
                     </div>
                     <div class="modal-body" id="pickerList"></div>
                 </div>
@@ -1126,6 +1126,15 @@
             return stations[id]?.nameHindi || stations[id]?.name || id;
         }
 
+        function getStationDisplayName(id) {
+            const station = stations[id];
+            if (!station) return id;
+            const name = station.nameHindi || station.name || id;
+            const city = station.city || station.cityName || station.district || '';
+            if (city) return `${name}, ${city}`;
+            return name;
+        }
+
         function getAllStationNames(id) {
             const station = stations[id];
             if (!station) return [id];
@@ -1133,7 +1142,36 @@
             if (station.suggestions && Array.isArray(station.suggestions)) {
                 names = [...names, ...station.suggestions];
             }
+            const city = station.city || station.cityName || station.district || '';
+            if (city) {
+                names.push(city);
+                names.push(station.name + ' ' + city);
+                names.push((station.nameHindi || station.name) + ' ' + city);
+            }
             return names.filter(n => n);
+        }
+
+        // ==================== रीसेंट स्टेशन (LocalStorage) ====================
+        const RECENT_STATIONS_KEY = 'recentStations';
+        function getRecentStations() {
+            return JSON.parse(localStorage.getItem(RECENT_STATIONS_KEY) || '[]');
+        }
+        function addToRecentStations(stationId) {
+            let recents = getRecentStations();
+            // Remove if already exists
+            recents = recents.filter(id => id !== stationId);
+            // Add to front
+            recents.unshift(stationId);
+            // Keep only last 5
+            recents = recents.slice(0, 5);
+            localStorage.setItem(RECENT_STATIONS_KEY, JSON.stringify(recents));
+        }
+        function clearRecentStations() {
+            localStorage.removeItem(RECENT_STATIONS_KEY);
+            // If picker is open, refresh it
+            if (pickerModal.classList.contains('show')) {
+                renderPickerList(stationSearchInput.value.trim());
+            }
         }
 
         function parseTime(t) {
@@ -1141,14 +1179,20 @@
             return h * 60 + (m || 0);
         }
 
+        function formatTime(minutes) {
+            const h = Math.floor(minutes / 60) % 24;
+            const m = minutes % 60;
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+        }
+
         function getTripStatus(trip) {
             const now = new Date();
             const current = now.getHours() * 60 + now.getMinutes();
             const dep = parseTime(trip.departure) + (trip.delay || 0);
             const arr = parseTime(trip.arrival) + (trip.delay || 0);
-            if (current < dep) return { status: 'upcoming', text: 'आने वाली', class: 'status-upcoming', order: 2 };
-            if (current > arr) return { status: 'departed', text: 'समाप्त', class: 'status-departed', order: 3 };
-            return { status: 'live', text: 'चल रही', class: 'status-live', order: 1 };
+            if (current < dep) return { status: 'upcoming', text: 'आने वाली', class: 'status-upcoming', order: 1 };
+            if (current >= dep && current <= arr) return { status: 'live', text: 'चल रही', class: 'status-live', order: 2 };
+            return { status: 'departed', text: 'समाप्त', class: 'status-departed', order: 3 };
         }
 
         function getLiveProgress(trip) {
@@ -1168,6 +1212,26 @@
                 stops = [...stops].reverse();
             }
             return stops;
+        }
+
+        function getStopTimes(trip, route) {
+            const stops = getStopsForTrip(trip, route);
+            if (!stops.length) return [];
+            const depMinutes = parseTime(trip.departure) + (trip.delay || 0);
+            const result = [];
+            for (let stop of stops) {
+                let stopTime = null;
+                if (stop.timeOffset !== undefined) {
+                    stopTime = formatTime(depMinutes + stop.timeOffset);
+                } else if (stop.time) {
+                    stopTime = stop.time;
+                }
+                result.push({
+                    stationId: stop.stationId,
+                    time: stopTime
+                });
+            }
+            return result;
         }
 
         function getCurrentLocation(trip, route) {
@@ -1219,27 +1283,81 @@
         const stationSearchInput = document.getElementById('stationSearchInput');
 
         function renderPickerList(filterText = '') {
+            // Clear current list
+            pickerList.innerHTML = '';
+
+            if (!filterText.trim()) {
+                // Show recent stations (if any)
+                const recents = getRecentStations();
+                if (recents.length === 0) {
+                    pickerList.innerHTML = '<div class="empty-state" style="padding:20px; text-align:center;">🔍 कोई हालिया स्टेशन नहीं</div>';
+                    return;
+                }
+                recents.forEach(id => {
+                    const station = stations[id];
+                    if (!station) return;
+                    const displayName = getStationDisplayName(id);
+                    const item = document.createElement('div');
+                    item.className = `picker-item ${(pickerMode === 'from' ? fromId : toId) === id ? 'selected' : ''}`;
+                    item.innerHTML = `<i class="fas fa-clock"></i><span>${displayName}</span><i class="fas fa-check check"></i>`;
+                    item.addEventListener('click', () => {
+                        selectStation(id);
+                    });
+                    pickerList.appendChild(item);
+                });
+                // Optional: add a clear recents button
+                const clearBtn = document.createElement('div');
+                clearBtn.className = 'picker-item';
+                clearBtn.style.borderBottom = 'none';
+                clearBtn.style.justifyContent = 'center';
+                clearBtn.style.color = 'var(--error)';
+                clearBtn.innerHTML = `<i class="fas fa-trash-alt"></i><span style="flex:none;">हालिया स्टेशन साफ करें</span>`;
+                clearBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearRecentStations();
+                    renderPickerList(''); // refresh
+                });
+                pickerList.appendChild(clearBtn);
+                return;
+            }
+
+            // Search mode: filter all stations
+            const searchTerm = filterText.toLowerCase();
             const filtered = allStationsList.filter(s => {
-                const searchTerm = filterText.toLowerCase();
                 const allNames = getAllStationNames(s.id).map(n => n.toLowerCase());
                 return allNames.some(name => name.includes(searchTerm));
             });
-            pickerList.innerHTML = '';
+
+            if (filtered.length === 0) {
+                pickerList.innerHTML = '<div class="empty-state" style="padding:20px; text-align:center;">❌ कोई स्टेशन नहीं मिला</div>';
+                return;
+            }
+
             filtered.forEach(({ id }) => {
-                const displayName = getStationName(id);
+                const displayName = getStationDisplayName(id);
                 const item = document.createElement('div');
                 item.className = `picker-item ${(pickerMode === 'from' ? fromId : toId) === id ? 'selected' : ''}`;
                 item.innerHTML = `<i class="fas fa-map-marker-alt"></i><span>${displayName}</span><i class="fas fa-check check"></i>`;
                 item.addEventListener('click', () => {
-                    if (pickerMode === 'from') fromId = id;
-                    else toId = id;
-                    if (fromId) localStorage.setItem('lastFromId', fromId);
-                    if (toId) localStorage.setItem('lastToId', toId);
-                    updateStationTexts();
-                    pickerModal.classList.remove('show');
+                    selectStation(id);
                 });
                 pickerList.appendChild(item);
             });
+        }
+
+        function selectStation(stationId) {
+            if (pickerMode === 'from') {
+                fromId = stationId;
+                localStorage.setItem('lastFromId', fromId);
+            } else {
+                toId = stationId;
+                localStorage.setItem('lastToId', toId);
+            }
+            // Save to recent stations
+            addToRecentStations(stationId);
+            updateStationTexts();
+            pickerModal.classList.remove('show');
+            stationSearchInput.value = '';
         }
 
         stationSearchInput.addEventListener('input', (e) => renderPickerList(e.target.value));
@@ -1304,7 +1422,7 @@
             return `<div class="bus-amenities">${amenities.join(' ')}</div>`;
         }
 
-        // ==================== रेंडर बस कार्ड ====================
+        // ==================== रेंडर बस कार्ड (only available seats) ====================
         function renderBusCard(id, bus, showFavoriteIcon = true) {
             const fromName = getStationName(bus.fromStation);
             const toName = getStationName(bus.toStation);
@@ -1362,11 +1480,8 @@
                     ${amenitiesHtml}
 
                     <div class="bus-details">
-                        <div class="detail-item"><i class="fas fa-chair"></i> ${bus.availableSeats || 0}/${bus.totalSeats || 0}</div>
+                        <div class="detail-item"><i class="fas fa-chair"></i> सीटें: ${bus.availableSeats || 0}</div>
                         <div class="detail-item"><i class="fas fa-road"></i> ${route?.totalDistance || '60 किमी'}</div>
-                        <div class="detail-item" style="color: ${bus.crowd === 'कम' ? 'var(--success)' : bus.crowd === 'मध्यम' ? 'var(--warning)' : 'var(--error)'}">
-                            <i class="fas fa-users"></i> ${bus.crowd}
-                        </div>
                     </div>
 
                     ${tripsHtml}
@@ -1374,24 +1489,101 @@
             `;
         }
 
-        // ==================== सर्च फंक्शन ====================
+        // ==================== रीसेंट सर्च फंक्शन ====================
+        function saveRecentSearch(from, to) {
+            if (!from || !to) return;
+            let recents = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            const key = `${from}|${to}`;
+            const existingIndex = recents.findIndex(r => `${r.from}|${r.to}` === key);
+            if (existingIndex !== -1) {
+                recents.splice(existingIndex, 1);
+            }
+            recents.unshift({ from, to, timestamp: Date.now() });
+            recents = recents.slice(0, 6);
+            localStorage.setItem('recentSearches', JSON.stringify(recents));
+            if (currentPage === 'home') {
+                renderHome();
+            }
+        }
+
+        function getRecentSearches() {
+            return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+        }
+
+        // ==================== सर्च फंक्शन (order: upcoming soonest -> live -> departed latest) ====================
         function searchBuses(from, to) {
             const results = [];
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
             Object.entries(buses).forEach(([id, bus]) => {
                 const route = routes[bus.routeId];
                 if (!route) return;
+
                 const stops = route.stops.map(s => s.stationId);
                 const fromIdx = stops.indexOf(from);
                 const toIdx = stops.indexOf(to);
-                if (fromIdx !== -1 && toIdx !== -1) {
-                    if (fromIdx < toIdx) {
-                        results.push([id, bus]);
-                    } else if (fromIdx > toIdx && bus.trips.some(t => t.direction !== 'forward')) {
-                        results.push([id, bus]);
+                if (fromIdx === -1 || toIdx === -1) return;
+
+                let direction = null;
+                if (fromIdx < toIdx) direction = 'forward';
+                else if (fromIdx > toIdx) direction = 'backward';
+                else return;
+
+                const validTrips = bus.trips.filter(trip => trip.direction === direction);
+                if (validTrips.length === 0) return;
+
+                let bestTrip = null;
+                let bestOrder = 999;
+                let bestDepTime = null;
+
+                for (const trip of validTrips) {
+                    const depMinutes = parseTime(trip.departure) + (trip.delay || 0);
+                    const status = getTripStatus(trip);
+                    let order = status.order;
+                    let sortValue = depMinutes;
+                    if (status.status === 'upcoming') {
+                        order = 1;
+                        sortValue = depMinutes;
+                    } else if (status.status === 'live') {
+                        order = 2;
+                        sortValue = depMinutes;
+                    } else {
+                        order = 3;
+                        sortValue = -depMinutes;
+                    }
+
+                    if (bestTrip === null ||
+                        order < bestOrder ||
+                        (order === bestOrder && (order === 1 ? sortValue < bestDepTime : (order === 3 ? sortValue > bestDepTime : false)))) {
+                        bestTrip = trip;
+                        bestOrder = order;
+                        bestDepTime = sortValue;
                     }
                 }
+
+                if (bestTrip) {
+                    results.push({ id, bus, bestTrip });
+                }
             });
-            return results;
+
+            results.sort((a, b) => {
+                const statusA = getTripStatus(a.bestTrip);
+                const statusB = getTripStatus(b.bestTrip);
+                if (statusA.order !== statusB.order) return statusA.order - statusB.order;
+                if (statusA.order === 1) {
+                    const depA = parseTime(a.bestTrip.departure) + (a.bestTrip.delay || 0);
+                    const depB = parseTime(b.bestTrip.departure) + (b.bestTrip.delay || 0);
+                    return depA - depB;
+                } else if (statusA.order === 3) {
+                    const depA = parseTime(a.bestTrip.departure) + (a.bestTrip.delay || 0);
+                    const depB = parseTime(b.bestTrip.departure) + (b.bestTrip.delay || 0);
+                    return depB - depA;
+                }
+                return 0;
+            });
+
+            return results.map(r => [r.id, r.bus]);
         }
 
         function searchBusesByNameOrNumber(term) {
@@ -1401,21 +1593,28 @@
             );
         }
 
-        function sortBusesByTime(busesArray) {
-            return busesArray.sort((a, b) => {
-                const aTrips = a[1].trips || [];
-                const bTrips = b[1].trips || [];
-                const aMinOrder = Math.min(...aTrips.map(t => getTripStatus(t).order));
-                const bMinOrder = Math.min(...bTrips.map(t => getTripStatus(t).order));
-                return aMinOrder - bMinOrder;
-            });
-        }
-
         // ==================== होम पेज ====================
         function renderHome() {
             const container = document.getElementById('pageContainer');
-            const fromText = fromId ? getStationName(fromId) : "कहाँ से...";
-            const toText = toId ? getStationName(toId) : "कहाँ तक...";
+            const fromText = fromId ? getStationDisplayName(fromId) : "कहाँ से...";
+            const toText = toId ? getStationDisplayName(toId) : "कहाँ तक...";
+            const recents = getRecentSearches();
+            let recentHtml = '';
+            if (recents.length > 0) {
+                recentHtml = `
+                    <div class="suggestions-section">
+                        <div class="section-title">हाल ही में खोजे गए मार्ग</div>
+                        <div class="suggestion-chips">
+                            ${recents.map(r => {
+                                const fromName = getStationDisplayName(r.from);
+                                const toName = getStationDisplayName(r.to);
+                                return `<div class="chip" onclick="handleRecentSearch('${r.from}', '${r.to}')"><i class="fas fa-history"></i> ${fromName} → ${toName}</div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="hero-section">
                     <div class="hero-top">
@@ -1482,6 +1681,8 @@
                     </div>
                 </div>
 
+                ${recentHtml}
+
                 <div class="features-grid">
                     <div class="feature-box" onclick="alert('माफ़ करें, यह सुविधा जल्द उपलब्ध होगी।')">
                         <i class="fas fa-clock"></i>
@@ -1518,7 +1719,7 @@
                 pickerMode = 'from';
                 pickerTitle.textContent = 'कहाँ से?';
                 stationSearchInput.value = '';
-                renderPickerList();
+                renderPickerList(''); // show recents
                 pickerModal.classList.add('show');
             });
 
@@ -1526,7 +1727,7 @@
                 pickerMode = 'to';
                 pickerTitle.textContent = 'कहाँ तक?';
                 stationSearchInput.value = '';
-                renderPickerList();
+                renderPickerList(''); // show recents
                 pickerModal.classList.add('show');
             });
 
@@ -1544,9 +1745,9 @@
                     alert('कृपया पहले स्टेशन चुनें');
                     return;
                 }
+                saveRecentSearch(fromId, toId);
                 const results = searchBuses(fromId, toId);
-                const sorted = sortBusesByTime(results);
-                navigateTo('busResults', { fromId, toId, results: sorted });
+                navigateTo('busResults', { fromId, toId, results });
             });
         }
 
@@ -1555,28 +1756,38 @@
             toId = to;
             localStorage.setItem('lastFromId', fromId);
             localStorage.setItem('lastToId', toId);
+            saveRecentSearch(from, to);
             const results = searchBuses(from, to);
-            const sorted = sortBusesByTime(results);
-            navigateTo('busResults', { fromId: from, toId: to, results: sorted });
+            navigateTo('busResults', { fromId: from, toId: to, results });
+        };
+
+        window.handleRecentSearch = function(from, to) {
+            fromId = from;
+            toId = to;
+            localStorage.setItem('lastFromId', fromId);
+            localStorage.setItem('lastToId', toId);
+            saveRecentSearch(from, to); // update timestamp
+            const results = searchBuses(from, to);
+            navigateTo('busResults', { fromId: from, toId: to, results });
         };
 
         function updateStationTexts() {
             const fromEl = document.getElementById('fromText');
             const toEl = document.getElementById('toText');
             if (fromEl) {
-                fromEl.textContent = fromId ? getStationName(fromId) : "कहाँ से...";
+                fromEl.textContent = fromId ? getStationDisplayName(fromId) : "कहाँ से...";
                 if (!fromId) fromEl.classList.add('placeholder');
                 else fromEl.classList.remove('placeholder');
             }
             if (toEl) {
-                toEl.textContent = toId ? getStationName(toId) : "कहाँ तक...";
+                toEl.textContent = toId ? getStationDisplayName(toId) : "कहाँ तक...";
                 if (!toId) toEl.classList.add('placeholder');
                 else toEl.classList.remove('placeholder');
             }
         }
 
         // ==================== बसें पेज ====================
-        function renderBusesPage(initialResults = null) {
+        function renderBusesPage() {
             const container = document.getElementById('pageContainer');
             container.innerHTML = `
                 <div class="bus-search-card">
@@ -1660,12 +1871,12 @@
             toId = to;
             localStorage.setItem('lastFromId', fromId);
             localStorage.setItem('lastToId', toId);
+            saveRecentSearch(from, to);
             const results = searchBuses(from, to);
-            const sorted = sortBusesByTime(results);
-            navigateTo('busResults', { fromId: from, toId: to, results: sorted });
+            navigateTo('busResults', { fromId: from, toId: to, results });
         };
 
-        // ==================== बस विवरण ====================
+        // ==================== बस विवरण (only available seats) ====================
         window.showBusDetail = function(busId, tripId) {
             navigateTo('busDetail', { busId, tripId });
         };
@@ -1678,12 +1889,12 @@
             const amenitiesHtml = renderAmenities(bus);
             
             if (tripId) {
-                const trip = bus.trips.find(t => t.id === tripId);
+                const trip = bus.trips.find(t => String(t.id) === String(tripId));
                 if (!trip) return;
                 const status = getTripStatus(trip);
                 const progress = getLiveProgress(trip);
                 const location = getCurrentLocation(trip, route);
-                const stops = getStopsForTrip(trip, route);
+                const stopTimes = getStopTimes(trip, route);
 
                 container.innerHTML = `
                     <div style="padding:16px;">
@@ -1710,13 +1921,14 @@
                             <div style="font-size:13px; color:var(--text-secondary); margin:8px 0;">
                                 <i class="fas fa-map-marker-alt" style="color:var(--primary); margin-right:4px;"></i> वर्तमान स्थिति: ${location}
                             </div>
-                            ${stops.length ? `
+                            ${stopTimes.length ? `
                                 <div style="background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px; margin-top:8px;">
-                                    <p style="color:var(--text-muted); font-size:12px; margin-bottom:8px;">${trip.direction === 'forward' ? 'मार्ग' : 'वापसी मार्ग'}</p>
-                                    ${stops.map((stop, idx) => `
+                                    <p style="color:var(--text-muted); font-size:12px; margin-bottom:8px;">${trip.direction === 'forward' ? 'मार्ग और समय' : 'वापसी मार्ग और समय'}</p>
+                                    ${stopTimes.map((stop, idx) => `
                                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                                            <span style="width:8px; height:8px; border-radius:4px; background:${idx === 0 || idx === stops.length-1 ? 'var(--primary)' : 'var(--text-muted)'};"></span>
+                                            <span style="width:8px; height:8px; border-radius:4px; background:${idx === 0 || idx === stopTimes.length-1 ? 'var(--primary)' : 'var(--text-muted)'};"></span>
                                             <span style="color:var(--text-secondary); font-size:12px;">${getStationName(stop.stationId)}</span>
+                                            ${stop.time ? `<span style="margin-left:auto; font-size:12px; font-weight:500; color:var(--primary);">${stop.time}</span>` : ''}
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1765,11 +1977,8 @@
                             <div class="bus-fare" style="font-size: 24px;">${bus.fare}</div>
                         </div>
                         <div style="display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
-                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px;"><i class="fas fa-chair"></i> सीटें: ${bus.availableSeats || 0}/${bus.totalSeats || 0}</span>
+                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px;"><i class="fas fa-chair"></i> सीटें: ${bus.availableSeats || 0}</span>
                             <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px;"><i class="fas fa-road"></i> दूरी: ${route?.totalDistance || '60 किमी'}</span>
-                            <span style="background: var(--surface2); padding: 4px 10px; border-radius: 20px; font-size: 12px; color: ${bus.crowd === 'कम' ? 'var(--success)' : bus.crowd === 'मध्यम' ? 'var(--warning)' : 'var(--error)'}">
-                                <i class="fas fa-users"></i> ${bus.crowd}
-                            </span>
                         </div>
                         ${amenitiesHtml}
                         <h4 style="margin: 15px 0 10px;">समय सारणी</h4>
@@ -1794,8 +2003,8 @@
         // ==================== बस रिजल्ट्स पेज ====================
         function renderBusResults(fromId, toId, results) {
             const container = document.getElementById('pageContainer');
-            const fromName = getStationName(fromId);
-            const toName = getStationName(toId);
+            const fromName = getStationDisplayName(fromId);
+            const toName = getStationDisplayName(toId);
             
             container.innerHTML = `
                 <div style="padding: 16px;">
